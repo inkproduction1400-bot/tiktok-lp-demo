@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OPERA｜2024 OCT SPECIAL｜再現LP（ダミー画像・スマホUI中央）</title>
+  <meta name="description" content="PCは背景アート＋中央にスマホUI、SPは通常表示。OPERA 2024 Oct 特設の雰囲気を再現したデモLP（画像はダミー）。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+  <style>
+    /* =========================================================
+       Global tokens
+    ========================================================= */
+    :root{
+      --brand:#C0113D;            /* 深紅 */
+      --brand2:#E8326B;           /* ピンクアクセント */
+      --opera-dark:#3a0e1f;       /* 背景系 */
+      --opera-mid:#5b0e28;
+      --opera-grad1:#dcb3bc;      /* 背景グラデ上 */
+      --opera-grad2:#b57a87;      /* 背景グラデ下 */
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --line:#ececef;
+      --shadow:0 30px 80px rgba(0,0,0,.28);
+      --radius:28px;
+      --phone-w:430px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0}
+    body{
+      font-family:'Noto Sans JP',system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      color:var(--ink);
+      line-height:1.8;
+      background:#fff; /* SP初期 */
+      overflow-x:hidden;
+    }
+    img{max-width:100%; display:block}
+    a{color:inherit}
+
+    /* =========================================================
+       Desktop stage (背景＋中央スマホUI)
+    ========================================================= */
+    .stage{display:block}
+    .bg-art{display:none}
+    .slab{display:none}
+    .phone{display:block}
+
+    @media (min-width:1024px){
+      body{
+        /* 参考ページの空気感に寄せた背景 */
+        background:
+          radial-gradient(1200px 600px at 75% 8%, rgba(255,255,255,.22), transparent 60%),
+          linear-gradient(180deg, var(--opera-grad1), var(--opera-grad2));
+      }
+      .stage{
+        min-height:100dvh;
+        display:flex;
+        align-items:flex-start;
+        justify-content:center;
+        padding:24px;
+      }
+      /* 左上・右下の果実風ボケ（ダミー） */
+      .bg-art{
+        position:fixed; inset:0; pointer-events:none; display:block; z-index:0;
+      }
+      .bg-art::before,
+      .bg-art::after{
+        content:""; position:absolute; border-radius:50%; filter:blur(2px);
+        box-shadow: 0 30px 80px rgba(0,0,0,.18) inset, 0 10px 40px rgba(0,0,0,.16);
+      }
+      .bg-art::before{
+        width:360px; height:360px; left:6%; top:18%;
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.65), transparent 45%), #8e2f45;
+      }
+      .bg-art::after{
+        width:260px; height:260px; right:6%; bottom:12%;
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.55), transparent 45%), #6f2336;
+      }
+      /* 背面の半透明スラブ（フォンの背板） */
+      .slab{
+        position:fixed; left:50%; top:24px; transform:translateX(-50%);
+        width:calc(var(--phone-w) + 50px);
+        height:calc(100dvh - 48px);
+        background:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.35));
+        border-radius:32px;
+        border:1px solid rgba(255,255,255,.6);
+        backdrop-filter:blur(2px);
+        box-shadow:0 16px 60px rgba(0,0,0,.12);
+        display:block; z-index:1;
+      }
+      /* スマホ本体カード */
+      .phone{
+        width:var(--phone-w);
+        background:#fff;
+        border-radius:30px;
+        box-shadow:var(--shadow);
+        overflow:hidden;
+        border:1px solid rgba(255,255,255,.6);
+        max-height:calc(100dvh - 48px);
+        overflow:auto; /* 内部スクロール（sticky可） */
+        z-index:2;
+      }
+    }
+
+    /* 右上の丸メニューボタン（ダミー） */
+    .float-menu{
+      position:fixed; right:48px; top:40px;
+      width:44px; height:44px; border-radius:50%;
+      background:#fff; display:none; place-items:center;
+      box-shadow:0 8px 18px rgba(0,0,0,.18); border:1px solid #f0d8dd; z-index:3;
+    }
+    .float-menu:before{content:"≡"; font-weight:900; color:#922d48}
+    @media (min-width:1024px){.float-menu{display:grid}}
+
+    /* 背景の透かしテキスト */
+    .watermark{
+      position:fixed; inset:0; pointer-events:none; display:none; z-index:0;
+    }
+    .watermark h2{
+      position:absolute; left:50%; top:58%; transform:translate(-50%,-50%);
+      font-family:Montserrat, sans-serif; font-weight:900;
+      font-size:clamp(56px, 12vw, 160px);
+      letter-spacing:.06em; color:rgba(255,255,255,.18);
+    }
+    @media (min-width:1024px){.watermark{display:block}}
+
+    /* =========================================================
+       Phone UI 内部
+    ========================================================= */
+    .container{width:min(92%, 420px); margin:0 auto}
+    .header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter:saturate(180%) blur(8px);
+      background:#ffffffe6; border-bottom:1px solid #f1e6e9;
+    }
+    .header-inner{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:.8rem .9rem;
+    }
+    .brand{display:flex; gap:.6rem; align-items:center}
+    .logo{
+      width:28px; height:28px; border-radius:50%;
+      background:radial-gradient(circle at 35% 30%, #fff, transparent 50%), linear-gradient(135deg, var(--brand), var(--brand2));
+      box-shadow:0 6px 18px rgba(224,30,86,.35)
+    }
+    .brand b{font-family:Montserrat, sans-serif; letter-spacing:.02em}
+    .ghost-btn{
+      background:#fff; border:2px solid var(--brand); color:var(--brand);
+      padding:.5rem .9rem; border-radius:999px; font-weight:900; font-size:.85rem;
+    }
+
+    /* Hero */
+    .hero-kv{position:relative}
+    .hero-img{
+      aspect-ratio:4/5; background:#f5e1e6; border-bottom-left-radius:24px; border-bottom-right-radius:24px;
+      display:grid; place-items:center; overflow:hidden;
+    }
+    .hero-img .ph{
+      width:100%; height:100%;
+      background:linear-gradient(135deg,#fbe6ec 0%, #ffffff 80%);
+      display:grid; place-items:center; color:#922d48; font-weight:900;
+      letter-spacing:.08em;
+    }
+    .badge-round{
+      position:absolute; left:16px; top:16px;
+      background:#fff; border-radius:999px; padding:10px 14px;
+      font-weight:900; color:#922d48; border:1px solid #f0d8dd; box-shadow:0 8px 18px rgba(0,0,0,.12);
+      line-height:1.1; font-size:.85rem; text-align:center;
+    }
+    .hero-copy{padding:18px 16px 8px; text-align:center}
+    .hero-title{font-family:Montserrat, sans-serif; font-weight:900; font-size:2.1rem; margin:.2rem 0 .4rem}
+    .hero-sub{color:#555; margin:0 0 .4rem}
+    .hero-meta{font-size:.9rem; color:#6b7280}
+    .cta{
+      display:flex; justify-content:center; padding:16px;
+    }
+    .btn{
+      display:inline-flex; gap:.6rem; align-items:center; justify-content:center;
+      padding:14px 20px; border-radius:999px; text-decoration:none; font-weight:900;
+      background:linear-gradient(90deg, var(--brand), var(--brand2)); color:#fff;
+      box-shadow:0 10px 22px rgba(224,30,86,.28);
+    }
+    .btn.ghost{background:#fff; color:var(--brand); border:2px solid var(--brand); box-shadow:none}
+
+    /* Generic section */
+    section{padding:24px 0}
+    .sec-head{text-align:center; margin-bottom:12px}
+    .eyebrow{display:inline-flex; gap:.4rem; align-items:center; color:var(--brand); font-weight:900}
+    .title{font-weight:900; font-size:1.35rem; margin:.25rem 0 .2rem}
+    .lead{color:#6b7280; font-size:.95rem}
+
+    /* Lineup cards */
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+    .card{border:1px solid #efe6e9; border-radius:16px; overflow:hidden; background:#fff}
+    .card .media{aspect-ratio:4/5; background:#f1e5e9; display:grid; place-items:center; color:#922d48; font-weight:900}
+    .card h3{margin:0; padding:10px 12px 4px; font-size:1rem}
+    .chip{display:inline-block; margin:0 12px 12px; padding:.2rem .6rem; border-radius:999px; background:#fff0f3; color:var(--brand); border:1px solid #ffd2de; font-size:.8rem; font-weight:900}
+    @media (max-width:360px){.grid{grid-template-columns:1fr}} /* 端末幅が極小のときは1列 */
+
+    /* Points */
+    .points{display:grid; grid-template-columns:1fr; gap:12px}
+    .point{border:1px solid #efe6e9; border-radius:16px; overflow:hidden; background:#fff}
+    .point .media{aspect-ratio:16/9; background:#ffe9f0; display:grid; place-items:center}
+    .point .body{padding:12px}
+    .point h4{margin:.2rem 0; color:var(--brand)}
+
+    /* Compare */
+    .panel{border:1px solid #efe6e9; border-radius:16px; background:#fff; padding:14px}
+    .swatch{display:flex; gap:10px; align-items:center}
+    .dot{width:16px; height:16px; border-radius:50%}
+    .note{color:#6b7280; font-size:.9rem}
+
+    /* Steps */
+    .steps{display:grid; grid-template-columns:1fr; gap:12px}
+    .step{position:relative; border:3px solid var(--brand); border-radius:18px; padding:12px; background:#fff}
+    .num{position:absolute; top:-12px; left:-12px; width:46px; height:46px; border-radius:50%;
+      background:linear-gradient(90deg, var(--brand), var(--brand2)); color:#fff; display:grid; place-items:center; font-weight:900}
+    .thumb{aspect-ratio:1/1; background:#eee; border-radius:12px; margin-top:6px}
+
+    /* Reviews */
+    .reviews{display:grid; grid-template-columns:1fr; gap:10px}
+    .review{border:1px solid #efe6e9; border-radius:14px; padding:12px; background:#fff}
+    .stars{color:#f6b300}
+
+    /* Footer inside phone */
+    .phone-footer{padding:16px; text-align:center; color:#6b7280; font-size:.85rem; border-top:1px solid #efe6e9}
+
+    /* Utility */
+    .mt-4{margin-top:4px} .mt-8{margin-top:8px} .mt-12{margin-top:12px}
+    .center{text-align:center}
+  </style>
+</head>
+<body>
+  <!-- 背景演出（PCでのみ表示） -->
+  <div class="watermark"><h2>MUTED KISS</h2></div>
+  <div class="float-menu" aria-label="menu"></div>
+  <div class="stage">
+    <div class="bg-art" aria-hidden="true"></div>
+    <div class="slab" aria-hidden="true"></div>
+
+    <!-- ここからスマホUI本体 -->
+    <div class="phone">
+      <header class="header">
+        <div class="header-inner container">
+          <div class="brand">
+            <div class="logo" aria-hidden="true"></div>
+            <b>OPERA</b>
+          </div>
+          <button class="ghost-btn">ONLINE STORE</button>
+        </div>
+      </header>
+
+      <!-- HERO -->
+      <section class="hero-kv">
+        <div class="hero-img">
+          <div class="ph">KV DUMMY IMAGE</div>
+          <div class="badge-round">LIMITED<br>COLOR</div>
+        </div>
+        <div class="hero-copy container">
+          <h1 class="hero-title">MUTED KISS</h1>
+          <p class="hero-sub">ミュートな “リアル粘膜ピンク”<br>限定2色（103 MISTY PLUM / 104 ROSY CHAI）</p>
+          <p class="hero-meta">2024.10.23 (WED) 発売</p>
+        </div>
+        <div class="cta">
+          <a href="#" class="btn" aria-label="オンラインストアへ">ONLINE STORE →</a>
+        </div>
+      </section>
+
+      <!-- INTRO -->
+      <section>
+        <div class="container sec-head">
+          <div class="eyebrow">2024 OCT THEMES</div>
+          <h2 class="title">深紅と余韻。秋の光をまとう限定色。</h2>
+          <p class="lead">参考サイトの文章骨子を汎用化したダミーテキストで御座る。</p>
+        </div>
+        <div class="container panel">
+          <ul>
+            <li>限定色：103 / 104（例）</li>
+            <li>質感：グロウ / セミマット / ティント</li>
+            <li>フレグランスフリー・アルコールフリー</li>
+          </ul>
+        </div>
+      </section>
+
+      <!-- LINEUP -->
+      <section id="lineup">
+        <div class="container sec-head">
+          <div class="eyebrow">LINE UP</div>
+          <h2 class="title">限定カラー & 定番カラー</h2>
+        </div>
+        <div class="container grid">
+          <article class="card">
+            <div class="media">IMG</div>
+            <h3>101 深紅ベリー（限定）</h3>
+            <span class="chip">GLOW</span>
+          </article>
+          <article class="card">
+            <div class="media">IMG</div>
+            <h3>102 こっくりプラム（限定）</h3>
+            <span class="chip">SEMI-MATTE</span>
+          </article>
+          <article class="card">
+            <div class="media">IMG</div>
+            <h3>08 ルビーレッド</h3>
+            <span class="chip">TINT</span>
+          </article>
+          <article class="card">
+            <div class="media">IMG</div>
+            <h3>09 ブラウンチェリー</h3>
+            <span class="chip">GLOW</span>
+          </article>
+        </div>
+      </section>
+
+      <!-- POINTS -->
+      <section id="points">
+        <div class="container sec-head">
+          <div class="eyebrow">FEATURES</div>
+          <h2 class="title">色・質感・持続 3つのこだわり</h2>
+        </div>
+        <div class="container points">
+          <article class="point">
+            <div class="media">POINT IMG</div>
+            <div class="body">
+              <h4>にごりのない発色</h4>
+              <p class="note">微細パールで唇の凹凸を補正（ダミー）。</p>
+            </div>
+          </article>
+          <article class="point">
+            <div class="media">POINT IMG</div>
+            <div class="body">
+              <h4>うるおいキープ</h4>
+              <p class="note">植物由来オイルを配合（ダミー）。</p>
+            </div>
+          </article>
+          <article class="point">
+            <div class="media">POINT IMG</div>
+            <div class="body">
+              <h4>色持ちティント</h4>
+              <p class="note">食事後も色が続く処方（ダミー）。</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <!-- COMPARE -->
+      <section id="compare">
+        <div class="container sec-head">
+          <div class="eyebrow">COLOR COMPARISON</div>
+          <h2 class="title">似ている色、どう違う？</h2>
+        </div>
+        <div class="container panel">
+          <h3 class="mt-4">深紅ベリー vs プラム</h3>
+          <div class="swatch mt-8"><span class="dot" style="background:#9b0b2b"></span> 深紅ベリー（青み寄り）</div>
+          <div class="swatch mt-4"><span class="dot" style="background:#7b0d33"></span> こっくりプラム（深み）</div>
+          <p class="note mt-8">どちらも青み系。深紅は鮮やか、プラムは落ち着き（ダミー）。</p>
+        </div>
+      </section>
+
+      <!-- HOW TO -->
+      <section id="howto">
+        <div class="container sec-head">
+          <div class="eyebrow">HOW TO</div>
+          <h2 class="title">きれいに仕上がる 3STEP</h2>
+        </div>
+        <div class="container steps">
+          <div class="step">
+            <div class="num">1</div>
+            <h4>土台を整える</h4>
+            <div class="thumb"></div>
+            <p class="note">保湿バームで薄く整える（ダミー）。</p>
+          </div>
+          <div class="step">
+            <div class="num">2</div>
+            <h4>直塗り</h4>
+            <div class="thumb"></div>
+            <p class="note">中央から輪郭に向かって（ダミー）。</p>
+          </div>
+          <div class="step">
+            <div class="num">3</div>
+            <h4>ぼかして一体化</h4>
+            <div class="thumb"></div>
+            <p class="note">指で輪郭をなじませる（ダミー）。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- REVIEWS -->
+      <section id="reviews">
+        <div class="container sec-head">
+          <div class="eyebrow">REVIEWS</div>
+          <h2 class="title">声</h2>
+        </div>
+        <div class="container reviews">
+          <div class="review"><div class="stars">★★★★★</div> 色が可愛いのに大人っぽい（ダミー）。</div>
+          <div class="review"><div class="stars">★★★★☆</div> マスク移りしにくい（ダミー）。</div>
+          <div class="review"><div class="stars">★★★★★</div> 保湿感が長続き（ダミー）。</div>
+          <div class="review"><div class="stars">★★★★☆</div> プレゼントに最適（ダミー）。</div>
+        </div>
+      </section>
+
+      <!-- CTA -->
+      <section id="cta">
+        <div class="container sec-head">
+          <div class="eyebrow">ONLINE</div>
+          <h2 class="title">限定カラー、今だけ。</h2>
+          <p class="lead">販売先URLやECボタンを差し込む想定で御座る。</p>
+        </div>
+        <div class="cta">
+          <a href="#" class="btn">公式ストアで購入</a>
+        </div>
+        <div class="cta" style="padding-top:0">
+          <a href="#" class="btn ghost">取扱店を探す</a>
+        </div>
+      </section>
+
+      <footer class="phone-footer">
+        © 2025 Demo Rebuild. All rights reserved.
+      </footer>
+    </div>
+    <!-- /スマホUI本体 -->
+  </div>
+</body>
+</html>
